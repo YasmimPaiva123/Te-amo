@@ -15,6 +15,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        overflow: hidden;
 
         background: linear-gradient(
             135deg,
@@ -35,18 +36,19 @@
         font-family: 'Great Vibes', cursive;
         text-shadow: 2px 2px 15px rgba(0,0,0,0.3);
         margin-bottom: 40px;
+        z-index: 2;
     }
 
     button {
         padding: 15px 40px;
-        font-size: 20px;
+        font-size: 22px;
         border: none;
         border-radius: 30px;
         background-color: white;
         color: #ff4d6d;
         cursor: pointer;
         transition: 0.3s;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        z-index: 2;
     }
 
     button:hover {
@@ -55,45 +57,124 @@
         color: white;
     }
 
-    #resposta {
-        margin-top: 20px;
-        font-size: 30px;
-        color: white;
-        display: none;
+    #overlay {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        top: 0;
+        left: 0;
+        opacity: 0;
+        transition: 1s;
+        z-index: 1;
     }
 
-    /* Esconde o vídeo */
-    iframe {
-        display: none;
+    #mensagem {
+        position: absolute;
+        color: white;
+        font-size: 50px;
+        text-align: center;
+        font-family: 'Great Vibes', cursive;
+        opacity: 0;
+        transition: 2s;
+        z-index: 3;
+    }
+
+    canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        pointer-events: none;
     }
 </style>
 </head>
 
 <body>
 
+<div id="overlay"></div>
+
 <h1>Vamos casar 💍</h1>
 
 <button onclick="aceitou()">SIM 💖</button>
 
-<p id="resposta">Eu sabia!!! 😍💍❤️</p>
+<div id="mensagem">Você é o amor da minha vida ❤️</div>
 
-<!-- YouTube (Sinais - Luan Santana) -->
-<iframe id="ytplayer"
-    width="0"
-    height="0"
-    src=""
-    frameborder="0"
-    allow="autoplay">
-</iframe>
+<!-- Player YouTube -->
+<div id="player"></div>
+
+<canvas id="confete"></canvas>
+
+<script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-    function aceitou() {
-        document.getElementById("resposta").style.display = "block";
+let player;
 
-        // inicia a música ao clicar
-        document.getElementById("ytplayer").src =
-        "https://www.youtube.com/embed/hCMp0z0JrjQ?autoplay=1&loop=1&playlist=hCMp0z0JrjQ";
+function onYouTubeIframeAPIReady() {
+    player = new YT.Player('player', {
+        height: '0',
+        width: '0',
+        videoId: 'hCMp0z0JrjQ',
+    });
+}
+
+function aceitou() {
+    // música
+    if (player) player.playVideo();
+
+    // escurecer tela
+    document.getElementById("overlay").style.opacity = "1";
+
+    // mostrar mensagem
+    setTimeout(() => {
+        document.getElementById("mensagem").style.opacity = "1";
+    }, 800);
+
+    // iniciar confete
+    iniciarConfete();
+}
+
+// 🎉 Confete simples
+const canvas = document.getElementById("confete");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let confetes = [];
+
+function iniciarConfete() {
+    for (let i = 0; i < 150; i++) {
+        confetes.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            r: Math.random() * 6 + 2,
+            d: Math.random() * 50
+        });
     }
+
+    animarConfete();
+}
+
+function animarConfete() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < confetes.length; i++) {
+        let c = confetes[i];
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2, false);
+        ctx.fillStyle = "white";
+        ctx.fill();
+
+        c.y += Math.cos(c.d) + 2;
+        c.x += Math.sin(c.d);
+
+        if (c.y > canvas.height) {
+            c.y = 0;
+        }
+    }
+
+    requestAnimationFrame(animarConfete);
+}
 </script>
 
 </body>
